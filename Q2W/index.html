@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/qgis2web.css"><link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/leaflet-control-geocoder.Geocoder.css">
+        <link rel="stylesheet" href="css/leaflet-measure.css">
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        </style>
+        <title></title>
+    </head>
+    <body>
+        <div id="map">
+        </div>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/leaflet-control-geocoder.Geocoder.js"></script>
+        <script src="js/leaflet-measure.js"></script>
+        <script src="data/OsmQuery_1.js"></script>
+        <script>
+        var highlightLayer;
+        function highlightFeature(e) {
+            highlightLayer = e.target;
+
+            if (e.target.feature.geometry.type === 'LineString') {
+              highlightLayer.setStyle({
+                color: '#ffff00',
+              });
+            } else {
+              highlightLayer.setStyle({
+                fillColor: '#ffff00',
+                fillOpacity: 1
+              });
+            }
+            highlightLayer.openPopup();
+        }
+        var map = L.map('map', {
+            zoomControl:true, maxZoom:18, minZoom:12
+        })
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var measureControl = new L.Control.Measure({
+            position: 'topleft',
+            primaryLengthUnit: 'meters',
+            secondaryLengthUnit: 'kilometers',
+            primaryAreaUnit: 'sqmeters',
+            secondaryAreaUnit: 'hectares'
+        });
+        measureControl.addTo(map);
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0]
+        .innerHTML = '';
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0]
+        .className += ' fas fa-ruler';
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+            if (bounds_group.getLayers().length) {
+                map.fitBounds(bounds_group.getBounds());
+            }
+            map.setMaxBounds(map.getBounds());
+        }
+        var layer_OpenStreetMap_0 = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            opacity: 1.0,
+            attribution: '',
+            minZoom: 12,
+            maxZoom: 18,
+            minNativeZoom: 0,
+            maxNativeZoom: 19
+        });
+        layer_OpenStreetMap_0;
+        map.addLayer(layer_OpenStreetMap_0);
+        function pop_OsmQuery_1(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (i in e.target._eventParents) {
+                        e.target._eventParents[i].resetStyle(e.target);
+                    }
+                    if (typeof layer.closePopup == 'function') {
+                        layer.closePopup();
+                    } else {
+                        layer.eachLayer(function(feature){
+                            feature.closePopup()
+                        });
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['full_id'] !== null ? Autolinker.link(feature.properties['full_id'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['osm_id'] !== null ? Autolinker.link(feature.properties['osm_id'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['osm_type'] !== null ? Autolinker.link(feature.properties['osm_type'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">landuse</th>\
+                        <td>' + (feature.properties['landuse'] !== null ? Autolinker.link(feature.properties['landuse'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['type'] !== null ? Autolinker.link(feature.properties['type'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['CLC:code'] !== null ? Autolinker.link(feature.properties['CLC:code'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['CLC:id'] !== null ? Autolinker.link(feature.properties['CLC:id'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['CLC:year'] !== null ? Autolinker.link(feature.properties['CLC:year'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['name'] !== null ? Autolinker.link(feature.properties['name'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['religion'] !== null ? Autolinker.link(feature.properties['religion'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['leaf_type'] !== null ? Autolinker.link(feature.properties['leaf_type'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['tourism'] !== null ? Autolinker.link(feature.properties['tourism'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['wikidata'] !== null ? Autolinker.link(feature.properties['wikidata'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['amenity'] !== null ? Autolinker.link(feature.properties['amenity'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['alt_name'] !== null ? Autolinker.link(feature.properties['alt_name'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['industrial'] !== null ? Autolinker.link(feature.properties['industrial'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['website'] !== null ? Autolinker.link(feature.properties['website'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['start_date'] !== null ? Autolinker.link(feature.properties['start_date'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['operator'] !== null ? Autolinker.link(feature.properties['operator'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['retail'] !== null ? Autolinker.link(feature.properties['retail'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['description'] !== null ? Autolinker.link(feature.properties['description'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['email'] !== null ? Autolinker.link(feature.properties['email'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['phone'] !== null ? Autolinker.link(feature.properties['phone'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['leisure'] !== null ? Autolinker.link(feature.properties['leisure'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['sport'] !== null ? Autolinker.link(feature.properties['sport'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['emergency'] !== null ? Autolinker.link(feature.properties['emergency'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['fax'] !== null ? Autolinker.link(feature.properties['fax'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['healthcare'] !== null ? Autolinker.link(feature.properties['healthcare'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['healthcare:speciality'] !== null ? Autolinker.link(feature.properties['healthcare:speciality'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['operator:type'] !== null ? Autolinker.link(feature.properties['operator:type'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ref:FR:FINESS'] !== null ? Autolinker.link(feature.properties['ref:FR:FINESS'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['type:FR:FINESS'] !== null ? Autolinker.link(feature.properties['type:FR:FINESS'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['barrier'] !== null ? Autolinker.link(feature.properties['barrier'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['layer'] !== null ? Autolinker.link(feature.properties['layer'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['basin'] !== null ? Autolinker.link(feature.properties['basin'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['was:amenity'] !== null ? Autolinker.link(feature.properties['was:amenity'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['was:parking'] !== null ? Autolinker.link(feature.properties['was:parking'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['url'] !== null ? Autolinker.link(feature.properties['url'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['place'] !== null ? Autolinker.link(feature.properties['place'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['source:shape'] !== null ? Autolinker.link(feature.properties['source:shape'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['residential'] !== null ? Autolinker.link(feature.properties['residential'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['award:ARPE'] !== null ? Autolinker.link(feature.properties['award:ARPE'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['is_in'] !== null ? Autolinker.link(feature.properties['is_in'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ref'] !== null ? Autolinker.link(feature.properties['ref'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['source:name'] !== null ? Autolinker.link(feature.properties['source:name'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['addr:city'] !== null ? Autolinker.link(feature.properties['addr:city'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['addr:housenumber'] !== null ? Autolinker.link(feature.properties['addr:housenumber'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['addr:postcode'] !== null ? Autolinker.link(feature.properties['addr:postcode'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['addr:street'] !== null ? Autolinker.link(feature.properties['addr:street'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['name:oc'] !== null ? Autolinker.link(feature.properties['name:oc'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['natural'] !== null ? Autolinker.link(feature.properties['natural'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['depot'] !== null ? Autolinker.link(feature.properties['depot'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['intermittent'] !== null ? Autolinker.link(feature.properties['intermittent'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['source:geometry'] !== null ? Autolinker.link(feature.properties['source:geometry'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['denomination'] !== null ? Autolinker.link(feature.properties['denomination'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['short_name'] !== null ? Autolinker.link(feature.properties['short_name'].toLocaleString(), {truncate: {length: 30, location: 'smart'}}) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_OsmQuery_1_0(feature) {
+            switch(String(feature.properties['landuse'])) {
+                default:
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(73,95,220,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'allotments':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(193,125,229,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'basin':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(54,214,94,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'brownfield':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(37,27,218,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'cemetery':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(229,197,132,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'civic_admin':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(134,238,202,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'commercial':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(130,103,209,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'construction':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(239,103,230,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'depot':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(67,192,234,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'farmland':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(194,206,15,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'farmyard':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(137,172,237,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'forest':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(236,125,207,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'grass':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(84,204,138,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'greenhouse_horticulture':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(234,107,60,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'healthcare':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(212,110,123,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'industrial':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(131,184,228,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'institutional':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(124,52,212,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'meadow':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(52,207,184,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'military':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(220,106,98,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'orchard':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(20,206,215,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'plant_nursery':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(74,203,51,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'proposal':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(230,215,115,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'railway':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(204,107,159,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'railway_station':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(202,111,218,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'recreation_ground':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(112,238,44,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'religious':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(127,201,35,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'residential':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(39,214,48,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'retail':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(210,116,147,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'tourism':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(218,154,98,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'vineyard':
+                    return {
+                pane: 'pane_OsmQuery_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(188,222,95,1.0)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_OsmQuery_1');
+        map.getPane('pane_OsmQuery_1').style.zIndex = 401;
+        map.getPane('pane_OsmQuery_1').style['mix-blend-mode'] = 'normal';
+        var layer_OsmQuery_1 = new L.geoJson(json_OsmQuery_1, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_OsmQuery_1',
+            layerName: 'layer_OsmQuery_1',
+            pane: 'pane_OsmQuery_1',
+            onEachFeature: pop_OsmQuery_1,
+            style: style_OsmQuery_1_0,
+        });
+        bounds_group.addLayer(layer_OsmQuery_1);
+        map.addLayer(layer_OsmQuery_1);
+        var osmGeocoder = new L.Control.Geocoder({
+            collapsed: true,
+            position: 'topleft',
+            text: 'Search',
+            title: 'Testing'
+        }).addTo(map);
+        document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
+        .className += ' fa fa-search';
+        document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
+        .title += 'Search for a place';
+        var baseMaps = {};
+        L.control.layers(baseMaps,{'OsmQuery<br /><table><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_0.png" /></td><td></td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_allotments1.png" /></td><td>allotments</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_basin2.png" /></td><td>basin</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_brownfield3.png" /></td><td>brownfield</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_cemetery4.png" /></td><td>cemetery</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_civicadmin5.png" /></td><td>civic_admin</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_commercial6.png" /></td><td>commercial</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_construction7.png" /></td><td>construction</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_depot8.png" /></td><td>depot</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_farmland9.png" /></td><td>farmland</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_farmyard10.png" /></td><td>farmyard</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_forest11.png" /></td><td>forest</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_grass12.png" /></td><td>grass</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_greenhousehorticulture13.png" /></td><td>greenhouse_horticulture</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_healthcare14.png" /></td><td>healthcare</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_industrial15.png" /></td><td>industrial</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_institutional16.png" /></td><td>institutional</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_meadow17.png" /></td><td>meadow</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_military18.png" /></td><td>military</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_orchard19.png" /></td><td>orchard</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_plantnursery20.png" /></td><td>plant_nursery</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_proposal21.png" /></td><td>proposal</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_railway22.png" /></td><td>railway</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_railwaystation23.png" /></td><td>railway_station</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_recreationground24.png" /></td><td>recreation_ground</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_religious25.png" /></td><td>religious</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_residential26.png" /></td><td>residential</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_retail27.png" /></td><td>retail</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_tourism28.png" /></td><td>tourism</td></tr><tr><td style="text-align: center;"><img src="legend/OsmQuery_1_vineyard29.png" /></td><td>vineyard</td></tr></table>': layer_OsmQuery_1,"OpenStreetMap": layer_OpenStreetMap_0,}).addTo(map);
+        setBounds();
+        </script>
+    </body>
+</html>
