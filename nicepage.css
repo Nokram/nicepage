@@ -27187,7 +27187,7 @@ a.u-link.u-text-hover-grey-90:hover {
 .u-header .u-menu-1 {margin: -31px 118px 0 auto}
 .u-header .u-nav-1 {font-size: 1rem; letter-spacing: 0; font-weight: 700; text-transform: uppercase}
 .u-header .u-nav-2 {font-size: 1rem}
-.u-header .u-text-1 {font-weight: 700; margin: -34px auto 0 90px} 
+.u-header .u-text-1 {font-weight: 700; background-image: none; margin: -34px auto 0 90px} 
 @media (max-width: 1199px){ .u-header .u-sheet-1 {margin: 0 auto}
 .u-header .u-image-1 {width: 63px; height: 63px}
 .u-header .u-social-icons-1 {margin-top: -111px}
