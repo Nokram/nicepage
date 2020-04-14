@@ -87,9 +87,9 @@
 
 @media (max-width: 575px){ .u-section-3 .u-text-1 {width: 340px}
 .u-section-3 .u-text-2 {width: 340px} }.u-section-4 .u-sheet-1 {min-height: 500px}
-.u-section-4 .u-custom-html-1 {min-height: 548px; height: auto; margin: 47px 570px 60px 0} 
+.u-section-4 .u-custom-html-1 {min-height: 548px; margin: 47px 570px 60px 0} 
 
-@media (max-width: 1199px){ .u-section-4 .u-custom-html-1 {margin-right: 370px; width: 570px} }
+@media (max-width: 1199px){ .u-section-4 .u-custom-html-1 {margin-right: 370px; width: 570px; height: auto} }
 
 @media (max-width: 991px){ .u-section-4 .u-custom-html-1 {margin-right: 150px} }
 
